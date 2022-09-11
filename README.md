@@ -1,1 +1,2 @@
 # weather-widget
+Weather widget
