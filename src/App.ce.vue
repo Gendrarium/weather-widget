@@ -50,7 +50,7 @@
       </div>
     </div>
     <Preloader
-      v-if="isLoading"
+      v-if="isLoading && queries.length > 0"
       className="widget__preloader"
       :is-visible="isLoading"
       :relative="true"
@@ -128,7 +128,11 @@
             {{ Math.round(item.wind.speed * 10) / 10 }}m/s
           </p>
         </div>
-        <div>
+        <div class="widget__inf-icon-wrapper">
+          <pressure-icon
+            :class="'widget__icon widget__icon_small widget__icon_with-margin'"
+            :color="isNightTheme ? 'white' : 'black'"
+          />
           <p
             class="widget__inf-title"
             :class="[isNightTheme ? 'widget__inf-title_night' : '']"
@@ -165,8 +169,8 @@
       >
         <button
           class="widget__button widget__button_cursor_move"
-          @mouseenter="isButtonDragged = true"
-          @mouseleave="isButtonDragged = false"
+          @pointerdown="isButtonDragged = true"
+          @pointerup="isButtonDragged = false"
           type="button"
         >
           <burger-icon
@@ -236,6 +240,7 @@
   import DeleteIcon from '@/icons/DeleteIcon.vue';
   import BurgerIcon from '@/icons/BurgerIcon.vue';
   import AddIcon from '@/icons/AddIcon.vue';
+  import PressureIcon from '@/icons/PressureIcon.vue';
 
   type Query = { id: number; query: string };
 
@@ -265,6 +270,7 @@
       DeleteIcon,
       BurgerIcon,
       AddIcon,
+      PressureIcon,
     },
     data(): Data {
       return {
@@ -310,17 +316,19 @@
           Promise.all(qq)
             .then((e) => {
               e.forEach((r, id) => {
-                this.getWeatherHelper(r, query[id].query, newRequest, id);
+                this.getWeatherHelper(r, newRequest, id);
               });
             })
+            .catch((e) => console.log(e))
             .finally(() => {
               this.isLoading = false;
             });
         } else {
           getWeather(query)
             .then((e) => {
-              this.getWeatherHelper(e, query, newRequest, id);
+              this.getWeatherHelper(e, newRequest, id);
             })
+            .catch((e) => console.log(e))
             .finally(() => {
               this.isLoading = false;
             });
@@ -328,7 +336,6 @@
       },
       getWeatherHelper(
         e: TOpenWeatherResponse,
-        query: string,
         newRequest?: boolean,
         id?: number
       ) {
@@ -339,22 +346,33 @@
           if (newRequest) {
             const newQueries = [
               ...this.queries,
-              { query, id: this.numberOfQueries },
+              { query: e.name, id: this.numberOfQueries },
             ];
             this.numberOfQueries++;
             localStorage.setItem('queries', JSON.stringify(newQueries));
-            this.queries = newQueries;
-            this.changedQueries = newQueries;
+            this.changedQueries = [...newQueries];
+            this.queries = [...newQueries];
           }
           e.customId = id || 0;
-          this.answers.push(e);
           e.imgSrc = `https://openweathermap.org/img/wn/${e.weather[0].icon}@2x.png`;
+          if (this.isSettingsOpen) {
+            this.changedAnswers.push(e);
+          } else {
+            this.answers.push(e);
+          }
         }
       },
       fetchIpAndAddCity() {
-        checkIp().then((res) => {
-          this.fetchWeather(res.city, true);
-        });
+        checkIp()
+          .then((res) => {
+            if ('city' in res) {
+              this.fetchWeather(res.city, true);
+            } else {
+              this.fetchWeather('New York', true);
+              throw res;
+            }
+          })
+          .catch((e) => console.log(e));
       },
       dragStart(e: DragEvent) {
         if (e.dataTransfer) {
@@ -449,8 +467,15 @@
       },
       addItem() {
         if (this.cityInput) {
-          this.fetchWeather(this.cityInput, true);
-          this.cityInput = '';
+          const isThisFirstRequest = this.changedAnswers.some(
+            (i) => i.name === this.cityInput
+          );
+          if (!isThisFirstRequest) {
+            this.fetchWeather(this.cityInput, true, this.numberOfQueries);
+            this.cityInput = '';
+          } else {
+            this.error = 'City already added!';
+          }
         }
       },
     },

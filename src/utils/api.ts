@@ -41,6 +41,14 @@ export const checkIp = (): Promise<IIp> => {
       },
     }
   )
-    .then((res) => res.json())
-    .catch((err) => console.log(err));
+    .then((res) => {
+      if (res.status === 200) {
+        return res.json();
+      } else {
+        throw Error('Error');
+      }
+    })
+    .catch((err) => {
+      return err;
+    });
 };
