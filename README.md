@@ -9,10 +9,16 @@
 Можно встроить виджет на любой сайт используя скрипт:
 
 ```html
-<script type="text/javascript" src="https://weather-widget-gendrarium.vercel.app/main.js"></script>
+<script
+  type="text/javascript"
+  src="https://weather-widget-gendrarium.vercel.app/main.js"
+></script>
 ```
 
-Тогда в html появится возможность использовать тег <weather-widget></weather-widget>
+Тогда в html появится возможность использовать тег:
+```html
+<weather-widget></weather-widget>
+```
 
 ### Демо
 
