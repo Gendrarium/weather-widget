@@ -4,23 +4,23 @@
     :class="[
       isNightTheme ? 'widget_night' : '',
       queries.length === 0 || isSettingsOpen ? 'widget_with-paddings' : '',
+      isLoading && !isSettingsOpen ? 'widget_with-preloader' : '',
     ]"
   >
     <div
       class="widget__title-container"
-      v-if="queries.length === 0 || isSettingsOpen"
-      :class="
-        isSettingsOpen
-          ? 'widget__title-container_justify_between'
-          : 'widget__title-container_justify_end'
+      v-if="
+        queries.length === 0 ||
+        isSettingsOpen ||
+        (isLoading && answers.length === 0)
       "
     >
       <h2
         class="widget__title"
         :class="[isNightTheme ? 'widget__title_night' : '']"
-        v-if="isSettingsOpen"
+        v-if="isSettingsOpen || answers.length === 0"
       >
-        Settings
+        {{ isSettingsOpen ? 'Settings' : 'Weather widget' }}
       </h2>
       <div class="widget__buttons-container">
         <button
@@ -49,15 +49,20 @@
         </button>
       </div>
     </div>
+    <Preloader
+      v-if="isLoading"
+      className="widget__preloader"
+      :is-visible="isLoading"
+      :relative="true"
+      :is-night-theme="isNightTheme"
+    />
     <div
       class="widget__wrapper"
       v-if="!isSettingsOpen"
       v-for="(item, id) in answers"
       :key="id"
     >
-      <div
-        class="widget__title-container widget__title-container_justify_between"
-      >
+      <div class="widget__title-container">
         <h2
           class="widget__title"
           :class="[isNightTheme ? 'widget__title_night' : '']"
@@ -147,7 +152,9 @@
     </div>
     <div v-else class="widget__settings-wrapper">
       <div
+        v-if="!isLoading"
         class="widget__settings-item"
+        :class="[isNightTheme ? 'widget__settings-item_night' : '']"
         id="container-for-dragging"
         v-for="(item, id) in queries"
         :draggable="isButtonDragged ? 'true' : 'false'"
@@ -171,7 +178,7 @@
           class="widget__title"
           :class="[isNightTheme ? 'widget__title_night' : '']"
         >
-          {{ item.query }} {{ item.id }}
+          {{ item.query }}
         </h2>
         <button
           class="widget__button"
@@ -184,10 +191,34 @@
           />
         </button>
       </div>
-      <div class="widget__settings-input-container">
-        <input class="widget__settings-input" />
-        <button class="widget__button" type="button">p</button>
-      </div>
+      <Preloader
+        className="widget__preloader"
+        :is-visible="isLoading && queries.length === 0"
+        :relative="true"
+        v-else
+      />
+      <form class="widget__settings-form" @submit.prevent="addItem">
+        <h2
+          class="widget__title"
+          :class="[isNightTheme ? 'widget__title_night' : '']"
+        >
+          Add Location:
+        </h2>
+        <div class="widget__settings-input-container">
+          <input
+            class="widget__settings-input"
+            :class="[isNightTheme ? 'widget__settings-input_night' : '']"
+            v-model="cityInput"
+          />
+          <button class="widget__button" type="submit">
+            <add-icon
+              :class="'widget__icon'"
+              :color="isNightTheme ? 'white' : 'black'"
+            />
+          </button>
+        </div>
+        <span v-if="error" class="widget__error">{{ error }}</span>
+      </form>
     </div>
   </div>
 </template>
@@ -196,6 +227,7 @@
   import { defineComponent } from 'vue';
   import { getWeather, checkIp } from '@/utils/api';
   import type { IOpenWeather, TOpenWeatherResponse } from '@/utils/interfaces';
+  import Preloader from '@/components/Preloader/Preloader.vue';
   import GearIcon from '@/icons/GearIcon.vue';
   import MoonIcon from '@/icons/MoonIcon.vue';
   import SunIcon from '@/icons/SunIcon.vue';
@@ -203,6 +235,7 @@
   import CrossIcon from '@/icons/CrossIcon.vue';
   import DeleteIcon from '@/icons/DeleteIcon.vue';
   import BurgerIcon from '@/icons/BurgerIcon.vue';
+  import AddIcon from '@/icons/AddIcon.vue';
 
   type Query = { id: number; query: string };
 
@@ -218,10 +251,12 @@
     changedAnswers: IOpenWeather[];
     selected: Node | null;
     isButtonDragged: boolean;
+    cityInput: string;
   }
 
   export default defineComponent({
     components: {
+      Preloader,
       GearIcon,
       MoonIcon,
       SunIcon,
@@ -229,6 +264,7 @@
       CrossIcon,
       DeleteIcon,
       BurgerIcon,
+      AddIcon,
     },
     data(): Data {
       return {
@@ -243,6 +279,7 @@
         changedAnswers: [],
         selected: null,
         isButtonDragged: false,
+        cityInput: '',
       };
     },
     mounted() {
@@ -263,7 +300,7 @@
       }
     },
     methods: {
-      fetchWeather(query: string | Query[], id?: number, newRequest?: boolean) {
+      fetchWeather(query: string | Query[], newRequest?: boolean, id?: number) {
         this.isLoading = true;
         if (Array.isArray(query)) {
           const qq = query.map((q) => {
@@ -273,7 +310,7 @@
           Promise.all(qq)
             .then((e) => {
               e.forEach((r, id) => {
-                this.getWeatherHelper(r, query[id].query, id, newRequest);
+                this.getWeatherHelper(r, query[id].query, newRequest, id);
               });
             })
             .finally(() => {
@@ -282,7 +319,7 @@
         } else {
           getWeather(query)
             .then((e) => {
-              this.getWeatherHelper(e, query, id, newRequest);
+              this.getWeatherHelper(e, query, newRequest, id);
             })
             .finally(() => {
               this.isLoading = false;
@@ -292,8 +329,8 @@
       getWeatherHelper(
         e: TOpenWeatherResponse,
         query: string,
-        id?: number,
-        newRequest?: boolean
+        newRequest?: boolean,
+        id?: number
       ) {
         if ('message' in e) {
           this.error = e.message;
@@ -307,6 +344,7 @@
             this.numberOfQueries++;
             localStorage.setItem('queries', JSON.stringify(newQueries));
             this.queries = newQueries;
+            this.changedQueries = newQueries;
           }
           e.customId = id || 0;
           this.answers.push(e);
@@ -315,28 +353,8 @@
       },
       fetchIpAndAddCity() {
         checkIp().then((res) => {
-          this.fetchWeather(res.city, 0, true);
+          this.fetchWeather(res.city, true);
         });
-      },
-      deleteItem(idItem: number | undefined) {
-        console.log(idItem);
-        if (typeof idItem === 'number') {
-          const filteredAnswers = this.changedAnswers.filter((i) => {
-            if (typeof i.customId === 'number') {
-              return i.customId !== idItem;
-            } else {
-              return true;
-            }
-          });
-          const filteredQueries = this.changedQueries.filter((i) => {
-            return i.id !== idItem;
-          });
-
-          localStorage.setItem('queries', JSON.stringify(filteredQueries));
-          this.queries = filteredQueries;
-          this.changedQueries = filteredQueries;
-          this.changedAnswers = filteredAnswers;
-        }
       },
       dragStart(e: DragEvent) {
         if (e.dataTransfer) {
@@ -410,15 +428,48 @@
         arr.splice(new_index, 0, arr.splice(old_index, 1)[0]);
         return arr;
       },
+      deleteItem(idItem: number | undefined) {
+        if (typeof idItem === 'number') {
+          const filteredAnswers = this.changedAnswers.filter((i) => {
+            if (typeof i.customId === 'number') {
+              return i.customId !== idItem;
+            } else {
+              return true;
+            }
+          });
+          const filteredQueries = this.changedQueries.filter((i) => {
+            return i.id !== idItem;
+          });
+
+          localStorage.setItem('queries', JSON.stringify(filteredQueries));
+          this.queries = filteredQueries;
+          this.changedQueries = filteredQueries;
+          this.changedAnswers = filteredAnswers;
+        }
+      },
+      addItem() {
+        if (this.cityInput) {
+          this.fetchWeather(this.cityInput, true);
+          this.cityInput = '';
+        }
+      },
+    },
+    watch: {
+      cityInput() {
+        this.error = '';
+      },
     },
   });
 </script>
 
 <style lang="scss">
-  $color-main: black;
-  $color-night-main: white;
-  $item-color: #c2c2c2;
-  $item-color-night: #a58f8f;
+  @import '@/styles/styles.scss';
+  @import '@/components/Preloader/Preloader.scss';
+
+  button,
+  input {
+    font-family: inherit;
+  }
 
   .widget {
     font-family: Arial, Helvetica, sans-serif;
@@ -433,6 +484,10 @@
 
     &_with-paddings {
       padding: 5px;
+    }
+
+    &_with-preloader {
+      padding: 5px 5px 15px;
     }
 
     &__wrapper {
@@ -461,39 +516,55 @@
       }
     }
 
-    &__settings-input-container {
-      display: flex;
+    &__settings-form {
       margin-top: 20px;
     }
 
+    &__settings-input-container {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
     &__settings-input {
-      width: 100px;
+      font-size: 16px;
+      padding: 2px;
+      width: 100%;
       background-color: rgba(0, 0, 0, 0);
-      border: 1px solid $item-color;
-      border-radius: 2px;
+      border: 2px solid $item-color;
+      border-radius: 4px;
+      color: $color-main;
+      margin-right: 10px;
+      transition: border-color 0.5s;
+
+      &:hover {
+        border: 2px solid $input-border;
+      }
 
       &:focus {
         outline: none;
+        border: 2px solid $input-border;
       }
 
       &_night {
-        background-color: $item-color-night;
+        color: $color-night-main;
+        border-color: $item-color-night;
+
+        &:hover {
+          border-color: $input-border-night;
+        }
+
+        &:focus {
+          border-color: $input-border-night;
+        }
       }
     }
 
     &__title-container {
       display: flex;
       align-items: center;
-
-      &_justify {
-        &_end {
-          justify-content: flex-end;
-        }
-
-        &_between {
-          justify-content: space-between;
-        }
-      }
+      justify-content: space-between;
     }
 
     &__title {
@@ -501,6 +572,9 @@
       font-size: 14px;
       font-weight: 600;
       color: $color-main;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
 
       &_night {
         color: $color-night-main;
@@ -597,6 +671,19 @@
       &_night {
         color: $color-night-main;
       }
+    }
+
+    &__error {
+      margin-top: 5px;
+      display: block;
+      color: $error-color;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    &__preloader {
+      margin-top: 10px;
     }
   }
 </style>
