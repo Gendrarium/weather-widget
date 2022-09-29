@@ -1,0 +1,217 @@
+@import '@/styles/styles.scss';
+
+.widget {
+  font-family: Arial, Helvetica, sans-serif;
+  width: 180px;
+  background-color: #e7e8ec;
+  border-radius: 5px;
+  box-sizing: border-box;
+
+  &_night {
+    background-color: #525252;
+  }
+
+  &_with-paddings {
+    padding: 5px;
+  }
+
+  &_with-preloader {
+    padding: 5px 5px 15px;
+  }
+
+  &__wrapper {
+    padding: 5px;
+    margin-top: 20px;
+
+    &:first-of-type {
+      margin-top: 0;
+    }
+  }
+
+  &__settings-wrapper {
+  }
+
+  &__settings-item {
+    border-radius: 5px;
+    background-color: $item-color;
+    padding: 5px 2px;
+    display: flex;
+    margin-top: 20px;
+    align-items: center;
+    justify-content: space-between;
+
+    &_night {
+      background-color: $item-color-night;
+    }
+  }
+
+  &__settings-form {
+    margin-top: 20px;
+  }
+
+  &__settings-input-container {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__settings-input {
+    font-size: 16px;
+    padding: 2px;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0);
+    border: 2px solid $item-color;
+    border-radius: 4px;
+    color: $color-main;
+    margin-right: 10px;
+    transition: border-color 0.5s;
+
+    &:hover {
+      border: 2px solid $input-border;
+    }
+
+    &:focus {
+      outline: none;
+      border: 2px solid $input-border;
+    }
+
+    &_night {
+      color: $color-night-main;
+      border-color: $item-color-night;
+
+      &:hover {
+        border-color: $input-border-night;
+      }
+
+      &:focus {
+        border-color: $input-border-night;
+      }
+    }
+  }
+
+  &__title-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: $color-main;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+
+    &_night {
+      color: $color-night-main;
+    }
+  }
+
+  &__buttons-container {
+    display: flex;
+  }
+
+  &__button {
+    border: none;
+    background-color: rgba(0, 0, 0, 0);
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    padding: 0;
+
+    &:first-of-type {
+      margin-right: 5px;
+    }
+    &_cursor {
+      &_move {
+        cursor: move;
+      }
+    }
+  }
+
+  &__icon {
+    width: 18px;
+    height: 18px;
+
+    &_small {
+      width: 15px;
+      height: 15px;
+    }
+
+    &_with-margin {
+      margin-right: 5px;
+    }
+  }
+
+  &__img-container {
+    display: flex;
+    align-items: center;
+  }
+
+  &__img {
+    width: 75px;
+    height: 75px;
+  }
+
+  &__temp {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0;
+    color: $color-main;
+
+    &_night {
+      color: $color-night-main;
+    }
+  }
+
+  &__desc {
+    font-size: 12px;
+    font-weight: 400;
+    margin: 0;
+    color: $color-main;
+
+    &_night {
+      color: $color-night-main;
+    }
+  }
+
+  &__inf-container {
+    margin-top: 15px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px 5px;
+  }
+
+  &__inf-icon-wrapper {
+    display: flex;
+    align-items: center;
+  }
+
+  &__inf-title {
+    font-size: 12px;
+    line-height: 14px;
+    font-weight: 400;
+    margin: 0;
+    color: $color-main;
+
+    &_night {
+      color: $color-night-main;
+    }
+  }
+
+  &__error {
+    margin-top: 5px;
+    display: block;
+    color: $error-color;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  &__preloader {
+    margin-top: 10px;
+  }
+}
