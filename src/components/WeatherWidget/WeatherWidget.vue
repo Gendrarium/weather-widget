@@ -2,33 +2,35 @@
   <div
     class="widget"
     :class="[
-      isNightTheme ? 'widget_night' : '',
-      queries.length === 0 || isSettingsOpen ? 'widget_with-paddings' : '',
-      isLoading && !isSettingsOpen ? 'widget_with-preloader' : '',
+      $store.state.isNightTheme ? 'widget_night' : '',
+      $store.state.queries.length === 0 || isSettingsOpen
+        ? 'widget_with-paddings'
+        : '',
+      $store.state.isLoading && !isSettingsOpen ? 'widget_with-preloader' : '',
     ]"
   >
     <div
       class="widget__title-container"
       v-if="
-        queries.length === 0 ||
+        $store.state.queries.length === 0 ||
         isSettingsOpen ||
-        (isLoading && answers.length === 0)
+        ($store.state.isLoading && $store.state.answers.length === 0)
       "
     >
       <h2
         class="widget__title"
-        :class="[isNightTheme ? 'widget__title_night' : '']"
-        v-if="isSettingsOpen || answers.length === 0"
+        :class="[$store.state.isNightTheme ? 'widget__title_night' : '']"
+        v-if="isSettingsOpen || $store.state.answers.length === 0"
       >
         {{ isSettingsOpen ? 'Settings' : 'Weather widget' }}
       </h2>
       <div class="widget__buttons-container">
         <button
           class="widget__button"
-          @click="isNightTheme = !isNightTheme"
+          @click="$store.commit('toggleIsNightTheme')"
           type="button"
         >
-          <moon-icon v-if="isNightTheme" :class="'widget__icon'" />
+          <moon-icon v-if="$store.state.isNightTheme" :class="'widget__icon'" />
           <sun-icon v-else :class="'widget__icon'" />
         </button>
         <button
@@ -38,44 +40,46 @@
         >
           <gear-icon
             v-if="!isSettingsOpen"
-            :color="isNightTheme ? 'white' : 'black'"
+            :color="$store.state.isNightTheme ? 'white' : 'black'"
             :class="'widget__icon'"
           />
           <cross-icon
             v-else
-            :color="isNightTheme ? 'white' : 'black'"
+            :color="$store.state.isNightTheme ? 'white' : 'black'"
             :class="'widget__icon'"
           />
         </button>
       </div>
     </div>
     <Preloader
-      v-if="isLoading && queries.length > 0"
+      v-if="$store.state.isLoading && $store.state.queries.length > 0"
       className="widget__preloader"
-      :is-visible="isLoading"
+      :is-visible="$store.state.isLoading"
       :relative="true"
-      :is-night-theme="isNightTheme"
     />
     <div
       class="widget__wrapper"
       v-if="!isSettingsOpen"
-      v-for="(item, id) in answers"
+      v-for="(item, id) in $store.state.answers"
       :key="id"
     >
       <div class="widget__title-container">
         <h2
           class="widget__title"
-          :class="[isNightTheme ? 'widget__title_night' : '']"
+          :class="[$store.state.isNightTheme ? 'widget__title_night' : '']"
         >
           {{ item.name }}, {{ item.sys.country }}
         </h2>
         <div class="widget__buttons-container" v-if="id === 0">
           <button
             class="widget__button"
-            @click="isNightTheme = !isNightTheme"
+            @click="$store.commit('toggleIsNightTheme')"
             type="button"
           >
-            <moon-icon v-if="isNightTheme" :class="'widget__icon'" />
+            <moon-icon
+              v-if="$store.state.isNightTheme"
+              :class="'widget__icon'"
+            />
             <sun-icon v-else :class="'widget__icon'" />
           </button>
           <button
@@ -84,7 +88,7 @@
             type="button"
           >
             <gear-icon
-              :color="isNightTheme ? 'white' : 'black'"
+              :color="$store.state.isNightTheme ? 'white' : 'black'"
               :class="'widget__icon'"
             />
           </button>
@@ -98,14 +102,14 @@
         />
         <p
           class="widget__temp"
-          :class="[isNightTheme ? 'widget__temp_night' : '']"
+          :class="[$store.state.isNightTheme ? 'widget__temp_night' : '']"
         >
           {{ Math.round(item.main.temp) }}&#176;C
         </p>
       </div>
       <p
         class="widget__desc"
-        :class="[isNightTheme ? 'widget__desc_night' : '']"
+        :class="[$store.state.isNightTheme ? 'widget__desc_night' : '']"
       >
         Feels like {{ Math.round(item.main.feels_like) }}&#176;C.
         {{ item.weather[0].main }}.
@@ -118,12 +122,14 @@
         <div class="widget__inf-icon-wrapper">
           <arrow-icon
             :class="'widget__icon widget__icon_small widget__icon_with-margin'"
-            :color="isNightTheme ? 'white' : 'black'"
+            :color="$store.state.isNightTheme ? 'white' : 'black'"
             :style="{ transform: `rotate(${item.wind.deg}deg)` }"
           />
           <p
             class="widget__inf-title"
-            :class="[isNightTheme ? 'widget__inf-title_night' : '']"
+            :class="[
+              $store.state.isNightTheme ? 'widget__inf-title_night' : '',
+            ]"
           >
             {{ Math.round(item.wind.speed * 10) / 10 }}m/s
           </p>
@@ -131,24 +137,26 @@
         <div class="widget__inf-icon-wrapper">
           <pressure-icon
             :class="'widget__icon widget__icon_small widget__icon_with-margin'"
-            :color="isNightTheme ? 'white' : 'black'"
+            :color="$store.state.isNightTheme ? 'white' : 'black'"
           />
           <p
             class="widget__inf-title"
-            :class="[isNightTheme ? 'widget__inf-title_night' : '']"
+            :class="[
+              $store.state.isNightTheme ? 'widget__inf-title_night' : '',
+            ]"
           >
             {{ item.main.pressure }}hPa
           </p>
         </div>
         <p
           class="widget__inf-title"
-          :class="[isNightTheme ? 'widget__inf-title_night' : '']"
+          :class="[$store.state.isNightTheme ? 'widget__inf-title_night' : '']"
         >
           Humidity: {{ item.main.humidity }}%
         </p>
         <p
           class="widget__inf-title"
-          :class="[isNightTheme ? 'widget__inf-title_night' : '']"
+          :class="[$store.state.isNightTheme ? 'widget__inf-title_night' : '']"
         >
           Visibility: {{ Math.round(item.visibility / 1000) }}km
         </p>
@@ -156,11 +164,13 @@
     </div>
     <div v-else class="widget__settings-wrapper">
       <div
-        v-if="!isLoading"
+        v-if="!$store.state.isLoading"
         class="widget__settings-item"
-        :class="[isNightTheme ? 'widget__settings-item_night' : '']"
+        :class="[
+          $store.state.isNightTheme ? 'widget__settings-item_night' : '',
+        ]"
         id="container-for-dragging"
-        v-for="(item, id) in queries"
+        v-for="(item, id) in $store.state.queries"
         :draggable="isButtonDragged ? 'true' : 'false'"
         @dragstart="isButtonDragged ? dragStart($event) : null"
         @dragend="isButtonDragged ? dragEnd($event, id) : null"
@@ -175,12 +185,12 @@
         >
           <burger-icon
             :class="'widget__icon'"
-            :color="isNightTheme ? 'white' : 'black'"
+            :color="$store.state.isNightTheme ? 'white' : 'black'"
           />
         </button>
         <h2
           class="widget__title"
-          :class="[isNightTheme ? 'widget__title_night' : '']"
+          :class="[$store.state.isNightTheme ? 'widget__title_night' : '']"
         >
           {{ item.query }}
         </h2>
@@ -191,33 +201,37 @@
         >
           <delete-icon
             :class="'widget__icon'"
-            :color="isNightTheme ? 'white' : 'black'"
+            :color="$store.state.isNightTheme ? 'white' : 'black'"
           />
         </button>
       </div>
       <Preloader
         className="widget__preloader"
-        :is-visible="isLoading && queries.length === 0"
+        :is-visible="
+          $store.state.isLoading && $store.state.queries.length === 0
+        "
         :relative="true"
         v-else
       />
       <form class="widget__settings-form" @submit.prevent="addItem">
         <h2
           class="widget__title"
-          :class="[isNightTheme ? 'widget__title_night' : '']"
+          :class="[$store.state.isNightTheme ? 'widget__title_night' : '']"
         >
           Add Location:
         </h2>
         <div class="widget__settings-input-container">
           <input
             class="widget__settings-input"
-            :class="[isNightTheme ? 'widget__settings-input_night' : '']"
+            :class="[
+              $store.state.isNightTheme ? 'widget__settings-input_night' : '',
+            ]"
             v-model="cityInput"
           />
           <button class="widget__button" type="submit">
             <add-icon
               :class="'widget__icon'"
-              :color="isNightTheme ? 'white' : 'black'"
+              :color="$store.state.isNightTheme ? 'white' : 'black'"
             />
           </button>
         </div>
@@ -231,6 +245,8 @@
   import { defineComponent } from 'vue';
   import { getWeather, checkIp } from '@/utils/api';
   import type { IOpenWeather, TOpenWeatherResponse } from '@/utils/interfaces';
+  import type { TQuery } from '@/interfaces';
+  import Preloader from '@/components/Preloader/Preloader.vue';
   import GearIcon from '@/icons/GearIcon.vue';
   import MoonIcon from '@/icons/MoonIcon.vue';
   import SunIcon from '@/icons/SunIcon.vue';
@@ -241,17 +257,11 @@
   import AddIcon from '@/icons/AddIcon.vue';
   import PressureIcon from '@/icons/PressureIcon.vue';
 
-  type Query = { id: number; query: string };
-
   interface Data {
-    isNightTheme: boolean;
-    isLoading: boolean;
     isSettingsOpen: boolean;
     error: string;
     numberOfQueries: number;
-    queries: Query[];
-    changedQueries: Query[];
-    answers: IOpenWeather[];
+    changedQueries: TQuery[];
     changedAnswers: IOpenWeather[];
     selected: Node | null;
     isButtonDragged: boolean;
@@ -260,6 +270,7 @@
 
   export default defineComponent({
     components: {
+      Preloader,
       GearIcon,
       MoonIcon,
       SunIcon,
@@ -272,14 +283,10 @@
     },
     data(): Data {
       return {
-        isNightTheme: false,
-        isLoading: true,
         isSettingsOpen: false,
         error: '',
         numberOfQueries: 0,
-        queries: [],
         changedQueries: [],
-        answers: [],
         changedAnswers: [],
         selected: null,
         isButtonDragged: false,
@@ -288,7 +295,7 @@
     },
     mounted() {
       const stringQueries: string | null = localStorage.getItem('queries');
-      const oldQueries: Query[] | null =
+      const oldQueries: TQuery[] | null =
         typeof stringQueries === 'string' ? JSON.parse(stringQueries) : null;
 
       if (oldQueries && oldQueries.length > 0) {
@@ -296,7 +303,7 @@
           i.id = id;
           return i;
         });
-        this.queries = queries;
+        this.$store.commit('setQueries', queries);
         this.numberOfQueries = queries.length;
         this.fetchWeather(queries);
       } else {
@@ -304,8 +311,12 @@
       }
     },
     methods: {
-      fetchWeather(query: string | Query[], newRequest?: boolean, id?: number) {
-        this.isLoading = true;
+      fetchWeather(
+        query: string | TQuery[],
+        newRequest?: boolean,
+        id?: number
+      ) {
+        this.$store.commit('setIsLoading', true);
         if (Array.isArray(query)) {
           const qq = query.map((q) => {
             return getWeather(q.query);
@@ -319,7 +330,7 @@
             })
             .catch((e) => console.log(e))
             .finally(() => {
-              this.isLoading = false;
+              this.$store.commit('setIsLoading', false);
             });
         } else {
           getWeather(query)
@@ -328,7 +339,7 @@
             })
             .catch((e) => console.log(e))
             .finally(() => {
-              this.isLoading = false;
+              this.$store.commit('setIsLoading', false);
             });
         }
       },
@@ -343,20 +354,20 @@
         } else {
           if (newRequest) {
             const newQueries = [
-              ...this.queries,
+              ...this.$store.state.queries,
               { query: e.name, id: this.numberOfQueries },
             ];
             this.numberOfQueries++;
             localStorage.setItem('queries', JSON.stringify(newQueries));
             this.changedQueries = [...newQueries];
-            this.queries = [...newQueries];
+            this.$store.commit('setQueries', [...newQueries]);
           }
           e.customId = id || 0;
           e.imgSrc = `https://openweathermap.org/img/wn/${e.weather[0].icon}@2x.png`;
           if (this.isSettingsOpen) {
             this.changedAnswers.push(e);
           } else {
-            this.answers.push(e);
+            this.$store.commit('setAnswers', [...this.$store.state.answers, e]);
           }
         }
       },
@@ -407,6 +418,7 @@
         }
 
         this.selected = null;
+        this.isButtonDragged = false;
       },
       isBefore(el1: Node | null, el2: Node | null) {
         if (el1 && el2) {
@@ -420,8 +432,8 @@
         } else return false;
       },
       reorderCities(oldItemId: number, newItemId: number) {
-        const queries = [...this.queries];
-        const answers = [...this.answers];
+        const queries = [...this.$store.state.queries];
+        const answers = [...this.$store.state.answers];
 
         this.arrayMove(queries, oldItemId, newItemId);
         this.changedQueries = queries;
@@ -432,11 +444,11 @@
       },
       handleSettingsClick() {
         if (this.isSettingsOpen) {
-          this.answers = this.changedAnswers;
-          this.queries = this.changedQueries;
+          this.$store.commit('setAnswers', this.changedAnswers);
+          this.$store.commit('setQueries', this.changedQueries);
         } else {
-          this.changedAnswers = this.answers;
-          this.changedQueries = this.queries;
+          this.changedAnswers = this.$store.state.answers;
+          this.changedQueries = this.$store.state.queries;
         }
         this.isSettingsOpen = !this.isSettingsOpen;
       },
@@ -458,7 +470,7 @@
           });
 
           localStorage.setItem('queries', JSON.stringify(filteredQueries));
-          this.queries = filteredQueries;
+          this.$store.commit('setQueries', filteredQueries);
           this.changedQueries = filteredQueries;
           this.changedAnswers = filteredAnswers;
         }
@@ -484,3 +496,5 @@
     },
   });
 </script>
+
+<style lang="scss" src="./WeatherWidget.scss"></style>

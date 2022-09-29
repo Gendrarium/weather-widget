@@ -18,7 +18,8 @@
     "vue": "^3.2.31",
     "vue-loader": "^17.0.0",
     "vue-router": "^4.0.14",
-    "vue-slicksort": "^1.2.0"
+    "vue-slicksort": "^1.2.0",
+    "vuex": "^4.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.17.8",

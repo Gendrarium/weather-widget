@@ -1,5 +1,5 @@
 <template>
-  <weather-widget/>
+  <weather-widget />
 </template>
 
 <script lang="ts">
@@ -14,9 +14,6 @@
 </script>
 
 <style lang="scss">
-  @import '@/components/Preloader/Preloader.scss';
-  @import '@/components/WeatherWidget/WeatherWidget.scss';
-
   button,
   input {
     font-family: inherit;

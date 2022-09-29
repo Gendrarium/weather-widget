@@ -15,7 +15,7 @@
       <span
         :class="[
           `preloader__round${relative ? ' preloader__round_relative' : ''}`,
-          isNightTheme ? 'preloader__round_night' : '',
+          $store.state.isNightTheme ? 'preloader__round_night' : '',
         ]"
       ></span>
     </div>
@@ -31,10 +31,6 @@
         type: Boolean,
         required: true,
       },
-      isNightTheme: {
-        type: Boolean,
-        required: false,
-      },
       relative: {
         type: Boolean,
         required: true,
@@ -47,6 +43,4 @@
   });
 </script>
 
-<style lang="scss">
-
-</style>
+<style lang="scss" src="./Preloader.scss"></style>
